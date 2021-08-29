@@ -13,6 +13,7 @@ mod tests {
     };
     use crate::rust_connector_api::MeteomaticsConnector;
     use chrono::{Duration, Local, Utc};
+    use rust_connector_api::connector_response::CSVBody;
     use rust_connector_api::locations::{Coordinates, Locations};
     use rust_connector_api::optionals::{Opt, OptSet, Optionals};
     use rust_connector_api::parameters::{PSet, Parameters, P};
@@ -75,15 +76,26 @@ mod tests {
             .await
             .unwrap();
 
-        let status = format!("{}", response.status());
-        println!(">>>>>>>>>> Status: {}", status);
-        println!(">>>>>>>>>> Headers:\n{:#?}", response.headers());
+        let csv_body = response.body;
+        println!(">>>>>>>>>> CSV body:\n{}", csv_body);
 
-        let body = response.text().await.unwrap();
-        println!(">>>>>>>>>> Body:\n{}", body);
+        print!("\n>>>>>>>>>> CSV headers:\n");
+        println!("{}", csv_body.csv_headers.to_vec().join(","));
 
-        assert_eq!(status, "200 OK");
-        assert_ne!(body, "");
+        print!("\n>>>>>>>>>> CSV records:\n");
+        for csv_record in csv_body.csv_records {
+            println!("{}", csv_record.to_vec().join(","));
+        }
+
+        assert_eq!(response.http_status, "200 OK");
+
+        assert_ne!(
+            response.body,
+            CSVBody {
+                csv_headers: vec![],
+                csv_records: vec![]
+            }
+        );
     }
 
     #[tokio::test]
