@@ -13,31 +13,33 @@ mod tests {
     };
     use crate::rust_connector_api::MeteomaticsConnector;
     use chrono::{Duration, Local, Utc};
-    use rust_connector_api::locations::{Coordinates, Locations, LocationsBuilder};
-    use rust_connector_api::optionals::{Opt, OptSet, Optionals, OptionalsBuilder};
-    use rust_connector_api::parameters::{PSet, Parameters, ParametersBuilder, P};
+    use rust_connector_api::locations::{Coordinates, Locations};
+    use rust_connector_api::optionals::{Opt, OptSet, Optionals};
+    use rust_connector_api::parameters::{PSet, Parameters, P};
     use std::iter::FromIterator;
 
     #[tokio::test]
     async fn call_query_time_series_with_options() {
         println!("##### call_query_time_series_with_options:");
 
+        // Create API connector
         let meteomatics_connector = MeteomaticsConnector::new(
             "python-community".to_string(),
             "Umivipawe179".to_string(),
             10,
         );
 
+        // Create ValidDateTime
         let now = Local::now();
         let yesterday = VDTOffset::Local(now.clone() - Duration::days(1));
         let now = VDTOffset::Local(now);
-
         let local_vdt: ValidDateTime = ValidDateTimeBuilder::default()
             .start_date_time(yesterday)
             .end_date_time(now)
             .build()
             .unwrap();
 
+        // Create Parameters
         let p_values: PSet<'_> = PSet::from_iter([
             P {
                 k: "t_2m",
@@ -48,17 +50,13 @@ mod tests {
                 v: Some("mm"),
             },
         ]);
-        let parameters: Parameters = ParametersBuilder::default()
-            .p_values(p_values)
-            .build()
-            .unwrap();
+        let parameters: Parameters = Parameters { p_values };
 
+        // Create Locations
         let coordinates = Coordinates::from(["47.419708", "9.358478"]);
-        let locations: Locations = LocationsBuilder::default()
-            .coordinates(coordinates)
-            .build()
-            .unwrap();
+        let locations: Locations = Locations { coordinates };
 
+        // Create Optionals
         let opt_values: OptSet<'_> = OptSet::from_iter([
             Opt {
                 k: "source",
@@ -69,22 +67,20 @@ mod tests {
                 v: "true",
             },
         ]);
-        let optionals: Optionals = OptionalsBuilder::default()
-            .opt_values(opt_values)
-            .build()
-            .unwrap();
+        let optionals: Optionals = Optionals { opt_values };
 
+        // Call endpoint
         let response = meteomatics_connector
             .query_time_series(local_vdt, parameters, locations, Option::from(optionals))
             .await
             .unwrap();
 
         let status = format!("{}", response.status());
-        println!("Status: {}", status);
-        println!("Headers:\n{:#?}", response.headers());
+        println!(">>>>>>>>>> Status: {}", status);
+        println!(">>>>>>>>>> Headers:\n{:#?}", response.headers());
 
         let body = response.text().await.unwrap();
-        println!("Body:\n{}", body);
+        println!(">>>>>>>>>> Body:\n{}", body);
 
         assert_eq!(status, "200 OK");
         assert_ne!(body, "");
@@ -111,14 +107,23 @@ mod tests {
             .build()
             .unwrap();
 
-        println!("utc_vdt.start_date_time: {:?}", utc_vdt.start_date_time);
-        println!("utc_vdt.period_date: {}", utc_vdt.period_date.unwrap());
         println!(
-            "utc_vdt.end_date_time: {:?}",
+            ">>>>>>>>>> utc_vdt.start_date_time: {:?}",
+            utc_vdt.start_date_time
+        );
+        println!(
+            ">>>>>>>>>> utc_vdt.period_date: {}",
+            utc_vdt.period_date.unwrap()
+        );
+        println!(
+            ">>>>>>>>>> utc_vdt.end_date_time: {:?}",
             utc_vdt.end_date_time.unwrap()
         );
-        println!("utc_vdt.time_step: {}", utc_vdt.time_step.unwrap());
-        println!("utc_vdt.time_list: {:?}", utc_vdt.time_list);
+        println!(
+            ">>>>>>>>>> utc_vdt.time_step: {}",
+            utc_vdt.time_step.unwrap()
+        );
+        println!(">>>>>>>>>> utc_vdt.time_list: {:?}", utc_vdt.time_list);
 
         assert_eq!(
             utc_vdt,
@@ -154,12 +159,9 @@ mod tests {
         p_values.push(p1);
         p_values.push(p2);
 
-        let params: Parameters = ParametersBuilder::default()
-            .p_values(p_values)
-            .build()
-            .unwrap();
+        let params: Parameters = Parameters { p_values };
 
-        println!("params: {}", params);
+        println!(">>>>>>>>>> params: {}", params);
 
         assert_eq!(params.to_string(), "t_2m:C,precip_1h:mm");
 
