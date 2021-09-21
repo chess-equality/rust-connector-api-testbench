@@ -71,31 +71,37 @@ mod tests {
         let optionals: Optionals = Optionals { opt_values };
 
         // Call endpoint
-        let response = meteomatics_connector
+        let result = meteomatics_connector
             .query_time_series(local_vdt, parameters, locations, Option::from(optionals))
-            .await
-            .unwrap();
+            .await;
 
-        let csv_body = response.body;
-        println!(">>>>>>>>>> CSV body:\n{}", csv_body);
+        match result {
+            Ok(response) => {
+                let csv_body = response.body;
+                println!(">>>>>>>>>> CSV body:\n{}", csv_body);
 
-        print!("\n>>>>>>>>>> CSV headers:\n");
-        println!("{}", csv_body.csv_headers.to_vec().join(","));
+                print!("\n>>>>>>>>>> CSV headers:\n");
+                println!("{}", csv_body.csv_headers.to_vec().join(","));
 
-        print!("\n>>>>>>>>>> CSV records:\n");
-        for csv_record in csv_body.csv_records {
-            println!("{}", csv_record.to_vec().join(","));
-        }
+                print!("\n>>>>>>>>>> CSV records:\n");
+                for csv_record in &csv_body.csv_records {
+                    println!("{}", csv_record.to_vec().join(","));
+                }
 
-        assert_eq!(response.http_status, "200 OK");
+                assert_eq!(response.http_status_message, "200 OK");
 
-        assert_ne!(
-            response.body,
-            CSVBody {
-                csv_headers: vec![],
-                csv_records: vec![]
+                assert_ne!(
+                    csv_body,
+                    CSVBody {
+                        csv_headers: vec![],
+                        csv_records: vec![]
+                    }
+                );
             }
-        );
+            Err(connector_error) => {
+                println!(">>>>>>>>>> ConnectorError: {:#?}", connector_error);
+            }
+        }
     }
 
     #[tokio::test]
