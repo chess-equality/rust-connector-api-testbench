@@ -13,7 +13,7 @@ mod tests {
     };
     use crate::rust_connector_api::MeteomaticsConnector;
     use chrono::{Duration, Local, Utc};
-    use rust_connector_api::connector_response::CSVBody;
+    use rust_connector_api::connector_response::ResponseBody;
     use rust_connector_api::locations::{Coordinates, Locations};
     use rust_connector_api::optionals::{Opt, OptSet, Optionals};
     use rust_connector_api::parameters::{PSet, Parameters, P};
@@ -77,24 +77,27 @@ mod tests {
 
         match result {
             Ok(response) => {
-                let csv_body = response.body;
-                println!(">>>>>>>>>> CSV body:\n{}", csv_body);
+                let response_body = response.body;
+                println!(">>>>>>>>>> ResponseBody:\n{}", response_body);
 
-                print!("\n>>>>>>>>>> CSV headers:\n");
-                println!("{}", csv_body.csv_headers.to_vec().join(","));
+                print!("\n>>>>>>>>>> ResponseHeaders:\n");
+                println!("{}", response_body.response_headers.to_vec().join(","));
 
-                print!("\n>>>>>>>>>> CSV records:\n");
-                for csv_record in &csv_body.csv_records {
-                    println!("{}", csv_record.to_vec().join(","));
+                print!("\n>>>>>>>>>> ResponseRecords:\n");
+                for response_record in &response_body.response_records {
+                    let (index, values) = response_record;
+                    let values_str: Vec<_> =
+                        values.to_vec().iter().map(ToString::to_string).collect();
+                    println!("{}", index.to_owned() + ": " + &values_str.join(","));
                 }
 
                 assert_eq!(response.http_status_message, "200 OK");
 
                 assert_ne!(
-                    csv_body,
-                    CSVBody {
-                        csv_headers: vec![],
-                        csv_records: vec![]
+                    response_body,
+                    ResponseBody {
+                        response_headers: vec![],
+                        response_records: vec![]
                     }
                 );
             }
