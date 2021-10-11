@@ -21,7 +21,7 @@ mod tests {
 
     #[tokio::test]
     async fn call_query_time_series_with_options() {
-        println!("##### call_query_time_series_with_options:");
+        println!("\n##### call_query_time_series_with_options:");
 
         // Create API connector
         let meteomatics_connector = MeteomaticsConnector::new(
@@ -78,9 +78,9 @@ mod tests {
         match result {
             Ok(response) => {
                 let response_body = response.body;
-                println!(">>>>>>>>>> ResponseBody:\n{}", response_body);
+                println!("\n>>>>>>>>>> ResponseBody:\n{}", response_body);
 
-                print!("\n>>>>>>>>>> ResponseHeaders:\n");
+                print!(">>>>>>>>>> ResponseHeaders:\n");
                 println!("{}", response_body.response_headers.to_vec().join(","));
 
                 print!("\n>>>>>>>>>> ResponseRecords:\n");
@@ -108,8 +108,78 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn time_series_with_start_date_time_only() {
+        println!("\n##### time_series_with_start_date_time_only:");
+
+        // Create API connector
+        let meteomatics_connector = MeteomaticsConnector::new(
+            "python-community".to_string(),
+            "Umivipawe179".to_string(),
+            10,
+        );
+
+        // Create ValidDateTime
+        let now = Local::now();
+        let yesterday = VDTOffset::Local(now.clone() - Duration::days(1));
+        let period_date = PeriodDate::Days(1);
+        let time_step = PeriodTime::Hours(1);
+        let local_vdt: ValidDateTime = ValidDateTimeBuilder::default()
+            .start_date_time(yesterday)
+            .period_date(period_date)
+            .time_step(time_step)
+            .build()
+            .unwrap();
+
+        // Create Parameters
+        let p_values: PSet<'_> = PSet::from_iter([
+            P {
+                k: "t_2m",
+                v: Some("C"),
+            },
+            P {
+                k: "precip_1h",
+                v: Some("mm"),
+            },
+        ]);
+        let parameters: Parameters = Parameters { p_values };
+
+        // Create Locations
+        let coordinates = Coordinates::from(["47.419708", "9.358478"]);
+        let locations: Locations = Locations { coordinates };
+
+        // Create Optionals
+        let opt_values: OptSet<'_> = OptSet::from_iter([
+            Opt {
+                k: "source",
+                v: "mix",
+            },
+            Opt {
+                k: "calibrated",
+                v: "true",
+            },
+        ]);
+        let optionals: Optionals = Optionals { opt_values };
+
+        // Call endpoint
+        let result = meteomatics_connector
+            .query_time_series(local_vdt, parameters, locations, Option::from(optionals))
+            .await;
+
+        match result {
+            Ok(response) => {
+                let response_body = response.body;
+                println!("\n>>>>>>>>>> ResponseBody:\n{}", response_body);
+                assert_eq!(response.http_status_message, "200 OK");
+            }
+            Err(connector_error) => {
+                println!(">>>>>>>>>> ConnectorError: {:#?}", connector_error);
+            }
+        }
+    }
+
+    #[tokio::test]
     async fn valid_date_time_with_optional_params() {
-        println!("##### valid_date_time_with_optional_params (UTC):");
+        println!("\n##### valid_date_time_with_optional_params (UTC):");
 
         let start_date_time = Utc::now();
         let period_date = PeriodDate::Days(1);
@@ -166,7 +236,7 @@ mod tests {
 
     #[tokio::test]
     async fn parameters_with_some_values() {
-        println!("##### parameters_with_some_values:");
+        println!("\n##### parameters_with_some_values:");
 
         let mut p_values: PSet<'_> = PSet::new();
         let p1 = P {
