@@ -77,7 +77,7 @@ mod tests {
 
         match result {
             Ok(response) => {
-                let response_body = response.body;
+                let response_body = response.response_body;
                 println!("\n>>>>>>>>>> ResponseBody:\n{}", response_body);
 
                 print!(">>>>>>>>>> ResponseHeaders:\n");
@@ -167,7 +167,7 @@ mod tests {
 
         match result {
             Ok(response) => {
-                let response_body = response.body;
+                let response_body = response.response_body;
                 println!("\n>>>>>>>>>> ResponseBody:\n{}", response_body);
                 assert_eq!(response.http_status_message, "200 OK");
             }
