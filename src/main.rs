@@ -4,7 +4,7 @@ fn main() {
     println!("Hello from test bench!");
 }
 
-// Use "develop" branch of rust_connector_api
+// Use "develop" branch of rust_connector_api.
 #[cfg(test)]
 mod tests {
 

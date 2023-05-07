@@ -1,0 +1,1 @@
+This project must be in the same folder level as `rust_connector_api`.

@@ -1,11 +1,11 @@
 [package]
 name = "rust_connector_api_testbench"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 rust-connector-api = { path = "../rust-connector-api" }
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.28.0", features = ["full"] }
 chrono = "0.4"
